@@ -86,7 +86,7 @@ resource "aws_ecs_service" "run" {
   desired_count       = var.service_count
 
   network_configuration {
-    subnets          = aws_subnet.public.*.id
+    subnets          = aws_subnet.public[*].id
     assign_public_ip = true # needed to pull from docker hub
     security_groups  = [aws_security_group.ecs_task.id]
   }
@@ -101,14 +101,13 @@ resource "aws_ecs_service" "run" {
     aws_lb_listener.this,
     aws_rds_cluster_instance.this,
     aws_iam_role.ecs_task_execution_role,
-    aws_ecs_service.migrate,
   ]
 
   tags = local.tags
 }
 
 resource "aws_ecs_task_definition" "migrate" {
-  count = var.migrate ? 1 : 0
+  count = (var.db_migrate && var.db_type == "postgres") ? 1 : 0
 
   family                   = "migrate"
   network_mode             = "awsvpc"
@@ -140,27 +139,18 @@ resource "aws_ecs_task_definition" "migrate" {
   tags = local.tags
 }
 
-resource "aws_ecs_service" "migrate" {
-  count = var.migrate ? 1 : 0
+# tflint-ignore: terraform_unused_declarations
+# comment out if using in-memory storage
+data "aws_ecs_task_execution" "run_migrate" {
+  desired_count   = (var.db_migrate && var.db_type == "postgres") ? 1 : 0
 
-  name                = "${local.name}-migrate"
-  cluster             = aws_ecs_cluster.this.id
-  task_definition     = aws_ecs_task_definition.migrate[0].arn
-  launch_type         = "FARGATE"
-  scheduling_strategy = "REPLICA"
-  desired_count       = 1
+  cluster         = aws_ecs_cluster.this.id
+  task_definition = aws_ecs_task_definition.migrate[0].id
+  launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = aws_subnet.public.*.id
-    assign_public_ip = true # needed to pull from docker hub
+    subnets          = aws_subnet.public[*].id
     security_groups  = [aws_security_group.ecs_task.id]
+    assign_public_ip = true # needed to pull from docker hub
   }
-
-  depends_on = [
-    aws_lb_listener.this,
-    aws_rds_cluster_instance.this,
-    aws_iam_role.ecs_task_execution_role,
-  ]
-
-  tags = local.tags
 }

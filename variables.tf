@@ -1,41 +1,36 @@
 variable "region" {
-  description = "Which region to deploy to"
+  description = "AWS region to deploy to"
   type        = string
   default     = "us-west-2"
 }
 
 variable "port" {
+  description = "The port where the load balancer will be publicly available in"
   type    = number
   default = 8080
 }
 
 variable "openfga_container_image" {
-  description = "Which image to use"
+  description = "OpenFGA image to use"
   type        = string
   default     = "openfga/openfga:latest"
 
 }
 
 variable "service_count" {
-  description = "The number of OpenFGA replicas to deploy"
+  description = "Number of OpenFGA replicas to deploy"
   type        = number
   default     = 1
 }
 
-variable "migrate" {
-  description = "Create the tables on a newly created database"
-  type        = bool
-  default     = true
-}
-
 variable "task_cpu" {
-  description = "The amount of cpu to give each OpenFGA instance"
+  description = "The number of CPU units to give each OpenFGA instance"
   type        = number
-  default     = 256
+  default     = 256 # .25 vCPU
 }
 
 variable "task_memory" {
-  description = "The amount of memory to give each OpenFGA instance"
+  description = "The amount of memory, in MB, to give each OpenFGA instance"
   type        = number
   default     = 512
 }
@@ -49,6 +44,12 @@ variable "db_type" {
 variable "db_name" {
   type    = string
   default = "postgres"
+}
+
+variable "db_migrate" {
+  description = "Enables a one-time run of the database migration"
+  type        = bool
+  default     = true
 }
 
 variable "db_username" {

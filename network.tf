@@ -39,7 +39,7 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   count = 3
 
-  subnet_id      = element(aws_subnet.public.*.id, count.index)
+  subnet_id      = element(aws_subnet.public[*].id, count.index)
   route_table_id = aws_route_table.public.id
 }
 
@@ -68,7 +68,7 @@ resource "aws_lb" "this" {
   name               = "${local.name}-lb"
   internal           = false
   load_balancer_type = "application"
-  subnets            = aws_subnet.public.*.id
+  subnets            = aws_subnet.public[*].id
   security_groups    = [aws_security_group.lb.id]
 
   enable_deletion_protection = false

@@ -2,7 +2,7 @@ resource "aws_db_subnet_group" "this" {
   count = var.db_type == "postgres" ? 1 : 0
 
   name       = "${local.name}-db-subnet-group"
-  subnet_ids = aws_subnet.public.*.id
+  subnet_ids = aws_subnet.public[*].id
 
   tags = local.tags
 }
